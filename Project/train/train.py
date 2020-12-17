@@ -11,6 +11,7 @@ import torch.utils.data
 
 from model import LSTMClassifier
 
+
 def model_fn(model_dir):
     """Load the PyTorch model from the `model_dir` directory."""
     print("Loading model.")
@@ -42,6 +43,7 @@ def model_fn(model_dir):
     print("Done loading model.")
     return model
 
+
 def _get_train_data_loader(batch_size, training_dir):
     print("Get train data loader.")
 
@@ -66,11 +68,37 @@ def train(model, train_loader, epochs, optimizer, loss_fn, device):
     loss_fn      - The loss function used for training.
     device       - Where the model and data should be loaded (gpu or cpu).
     """
-    
+
     # TODO: Paste the train() method developed in the notebook here.
+    for epoch in range(1, epochs + 1):
+        model.train()
+        total_loss = 0
+        for batch in train_loader:
+            batch_X, batch_y = batch
 
-    pass
+            batch_X = batch_X.to(device)
+            batch_y = batch_y.to(device)
 
+            # TODO: Complete this train method to train the model provided.
+
+            # zero out the accumulated gradients
+            model.zero_grad()
+
+            # calculate the output
+            output = model(batch_X)
+
+            # calculate the loss
+            loss = loss_fn(output, batch_y)
+
+            # perform backprop
+            loss.backward()
+
+            # update the parameters
+            optimizer.step()
+
+            total_loss += loss.data.item()
+
+        print("Epoch: {}, BCELoss: {}".format(epoch, total_loss / len(train_loader)))
 
 if __name__ == '__main__':
     # All of the model parameters and training parameters are sent as arguments when the script
@@ -137,12 +165,12 @@ if __name__ == '__main__':
         }
         torch.save(model_info, f)
 
-	# Save the word_dict
+    # Save the word_dict
     word_dict_path = os.path.join(args.model_dir, 'word_dict.pkl')
     with open(word_dict_path, 'wb') as f:
         pickle.dump(model.word_dict, f)
 
-	# Save the model parameters
+    # Save the model parameters
     model_path = os.path.join(args.model_dir, 'model.pth')
     with open(model_path, 'wb') as f:
         torch.save(model.cpu().state_dict(), f)
